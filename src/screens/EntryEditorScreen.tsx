@@ -14,17 +14,21 @@ import { theme } from '../theme';
 import { ChevronLeft, Settings } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
+import { MOCK_ENTRIES } from '../data/mockData';
+
 const EntryEditorScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
+    const { id } = route.params || {};
+
+    const entry = MOCK_ENTRIES.find(e => e.id === id) || MOCK_ENTRIES[0];
 
     // Pre-filled data
-    const [text, setText] = React.useState(
-        "Today was a productive day. I finally finished the project I was working on, and I went for a nice walk in the park. The sunset was particularly beautiful, which really made me smile."
-    );
+    const [text, setText] = React.useState(entry.text);
 
     const handleSave = () => {
         // Logic to save changes would go here
+        // Update mock data in memory for this session (if we wanted to go that far, but standard is fine)
         navigation.goBack();
     };
 
@@ -47,14 +51,14 @@ const EntryEditorScreen = () => {
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     {/* Date/Time Info */}
                     <View style={styles.dateTimeContainer}>
-                        <Text style={styles.dateTimeText}>Dec 20, 2025 • 9:15 PM</Text>
+                        <Text style={styles.dateTimeText}>{entry.date} • {entry.time}</Text>
                     </View>
 
                     {/* Prompt Card */}
                     <View style={styles.promptCard}>
                         <Text style={styles.promptLabel}>The Prompt</Text>
                         <Text style={styles.promptText}>
-                            What's one small thing that made you smile today?
+                            {entry.prompt}
                         </Text>
                     </View>
 

@@ -15,6 +15,8 @@ import { theme } from '../theme';
 import { ChevronLeft, Settings, Info } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { MOCK_ENTRIES } from '../data/mockData';
+
 const { width } = Dimensions.get('window');
 const TIMER_SIZE = 120;
 const STROKE_WIDTH = 8;
@@ -128,7 +130,7 @@ const WritingScreen = ({ route }: any) => {
                 <Text style={styles.promptText}>
                     {isPastDate
                         ? `What's one small thing that made you smile on ${date}?`
-                        : "What's one small thing that made you smile today?"}
+                        : MOCK_ENTRIES[0].prompt}
                 </Text>
             </View>
 

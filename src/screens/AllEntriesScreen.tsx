@@ -17,24 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
-const ALL_MOCK_ENTRIES = [
-    { id: '1', date: 'Dec 26, 2025', mood: '😊', moodType: 'happy', text: "Celebrated a friend's birthday. Good vibes all around. It was a wonderful evening with cake and laughter." },
-    { id: '2', date: 'Dec 24, 2025', mood: '😌', moodType: 'calm', text: "A quiet evening reflecting on the past year. I'm excited for what's next and feeling very peaceful." },
-    { id: '3', date: 'Dec 20, 2025', mood: '😟', moodType: 'anxious', text: "Feeling a bit overwhelmed with work today, but writing this down helped me prioritize my tasks." },
-    { id: '4', date: 'Dec 15, 2025', mood: '😊', moodType: 'happy', text: "Finally finished that big project! The relief is immense and I'm treating myself to a nice dinner." },
-    { id: '5', date: 'Dec 12, 2025', mood: '😌', moodType: 'calm', text: "A nice walk in the park helped me clear my head. Nature always has a way of grounding me." },
-    { id: '6', date: 'Dec 8, 2025', mood: '😌', moodType: 'calm', text: "Morning meditation was particularly deep today. I feel ready to face whatever the day brings." },
-    { id: '7', date: 'Dec 5, 2025', mood: '😊', moodType: 'happy', text: "Completed a major milestone at work. Feeling proud! It's been a long journey but worth it." },
-    { id: '8', date: 'Dec 2, 2025', mood: '😌', moodType: 'calm', text: "Spent a quiet morning reading. I felt very calm and centered. The book was fascinating." },
-];
-
-const MOOD_FILTERS = [
-    { emoji: '😊', type: 'happy' },
-    { emoji: '😌', type: 'calm' },
-    { emoji: '😟', type: 'anxious' },
-    { emoji: '😔', type: 'sad' },
-    { emoji: '😠', type: 'angry' },
-];
+import { MOCK_ENTRIES, MOODS } from '../data/mockData';
 
 const AllEntriesScreen = () => {
     const navigation = useNavigation<any>();
@@ -42,22 +25,22 @@ const AllEntriesScreen = () => {
     const [activeMoodFilter, setActiveMoodFilter] = useState<string | null>(null);
 
     const filteredEntries = useMemo(() => {
-        return ALL_MOCK_ENTRIES.filter(entry => {
+        return MOCK_ENTRIES.filter(entry => {
             const matchesSearch = entry.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 entry.date.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesMood = activeMoodFilter ? entry.moodType === activeMoodFilter : true;
+            const matchesMood = activeMoodFilter ? entry.postMood.type === activeMoodFilter : true;
             return matchesSearch && matchesMood;
         });
     }, [searchQuery, activeMoodFilter]);
 
-    const renderEntryItem = ({ item }: { item: typeof ALL_MOCK_ENTRIES[0] }) => (
+    const renderEntryItem = ({ item }: { item: typeof MOCK_ENTRIES[0] }) => (
         <TouchableOpacity
             style={styles.entryCard}
             onPress={() => navigation.navigate('EntryDetail', { id: item.id })}
         >
             <View style={styles.entryHeader}>
                 <Text style={styles.entryDate}>{item.date}</Text>
-                <Text style={styles.entryEmoji}>{item.mood}</Text>
+                <Text style={styles.entryEmoji}>{item.postMood.emoji}</Text>
             </View>
             <Text style={styles.entryText} numberOfLines={3}>
                 {item.text}
@@ -95,7 +78,7 @@ const AllEntriesScreen = () => {
                         >
                             <Text style={[styles.moodChipText, !activeMoodFilter && styles.activeMoodChipText]}>All</Text>
                         </TouchableOpacity>
-                        {MOOD_FILTERS.map((mood) => (
+                        {MOODS.map((mood) => (
                             <TouchableOpacity
                                 key={mood.type}
                                 style={[styles.moodChip, activeMoodFilter === mood.type && styles.activeMoodChip]}

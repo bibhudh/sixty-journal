@@ -12,10 +12,16 @@ import { theme } from '../theme';
 import { ChevronLeft, Edit2, Trash2, ArrowRight } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
+import { MOCK_ENTRIES } from '../data/mockData';
+
 const EntryDetailScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
-    const { day } = route.params || { day: 20 };
+    const { id } = route.params || {};
+
+    // Find entry by ID, or fallback to the first one if not found (or if accessed directly without params)
+    const entry = MOCK_ENTRIES.find(e => e.id === id) || MOCK_ENTRIES[0];
+
     const [showDeleteModal, setShowDeleteModal] = React.useState(false);
 
     const handleDelete = () => {
@@ -30,7 +36,7 @@ const EntryDetailScreen = () => {
                 <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <ChevronLeft size={24} color={theme.colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>December {day}, 2025 • 9:15 PM</Text>
+                <Text style={styles.headerTitle}>{entry.date} • {entry.time}</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -38,14 +44,14 @@ const EntryDetailScreen = () => {
                 <View style={styles.moodSection}>
                     <Text style={styles.sectionTitle}>Emotional Shift</Text>
                     <View style={styles.moodRow}>
-                        <View style={[styles.moodBadge, { backgroundColor: theme.colors.mood.anxious + '20' }]}>
-                            <Text style={styles.moodEmoji}>😟</Text>
-                            <Text style={styles.moodText}>Anxious</Text>
+                        <View style={[styles.moodBadge, { backgroundColor: (theme.colors.mood as any)[entry.preMood.type] + '20' }]}>
+                            <Text style={styles.moodEmoji}>{entry.preMood.emoji}</Text>
+                            <Text style={styles.moodText}>{entry.preMood.label}</Text>
                         </View>
                         <ArrowRight size={20} color={theme.colors.textMuted} />
-                        <View style={[styles.moodBadge, { backgroundColor: theme.colors.mood.calm + '20' }]}>
-                            <Text style={styles.moodEmoji}>😌</Text>
-                            <Text style={styles.moodText}>Calm</Text>
+                        <View style={[styles.moodBadge, { backgroundColor: (theme.colors.mood as any)[entry.postMood.type] + '20' }]}>
+                            <Text style={styles.moodEmoji}>{entry.postMood.emoji}</Text>
+                            <Text style={styles.moodText}>{entry.postMood.label}</Text>
                         </View>
                     </View>
                 </View>
@@ -54,7 +60,7 @@ const EntryDetailScreen = () => {
                     <Text style={styles.sectionTitle}>Prompt</Text>
                     <View style={styles.promptCard}>
                         <Text style={styles.promptText}>
-                            "What's one small thing that made you smile today?"
+                            "{entry.prompt}"
                         </Text>
                     </View>
                 </View>
@@ -62,12 +68,7 @@ const EntryDetailScreen = () => {
                 <View style={styles.entrySection}>
                     <Text style={styles.sectionTitle}>Your Reflection</Text>
                     <Text style={styles.entryText}>
-                        Today was quite a busy day at work. I felt overwhelmed with meetings and deadlines.
-                        However, when I stepped outside for a quick coffee break, I saw a small puppy playing
-                        in the park. Its pure joy and energy were so contagious that I couldn't help but smile.
-                        It reminded me that beauty exists in small moments, even on stressful days.
-                        Writing this down for 60 seconds helped me realize that the stress is temporary,
-                        but these little moments are what truly matter. I feel much more centered now.
+                        {entry.text}
                     </Text>
                 </View>
 

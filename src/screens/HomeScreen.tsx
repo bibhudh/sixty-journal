@@ -15,24 +15,16 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
+import { MOCK_ENTRIES, USER_PROFILE, MOCK_TODAY } from '../data/mockData';
+
 const HomeScreen = () => {
     const navigation = useNavigation<any>();
     const [showAlreadyJournaledModal, setShowAlreadyJournaledModal] = useState(false);
 
-    // Mocking that user has already journaled today
-    const hasJournaledToday = true;
+    // Check if there is an entry for "today"
+    const hasJournaledToday = MOCK_ENTRIES.some(e => e.date === MOCK_TODAY);
 
-    const RECENT_ENTRIES = [
-        { id: '1', date: 'Dec 26, 2025', emoji: '😌', preview: "What's one small thing that made you smile today? I saw a puppy..." },
-        { id: '2', date: 'Dec 25, 2025', emoji: '😊', preview: "Today was Christmas and I felt very grateful for my family and..." },
-        { id: '3', date: 'Dec 24, 2025', emoji: '😌', preview: "A quiet evening reflecting on the past year. I'm excited for..." },
-    ];
-
-    const today = new Date().toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-    });
+    const today = MOCK_TODAY;
 
     const handleStartJournal = () => {
         if (hasJournaledToday) {
@@ -48,14 +40,14 @@ const HomeScreen = () => {
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.greeting}>Welcome back,</Text>
-                        <Text style={styles.userName}>Sarah</Text>
+                        <Text style={styles.userName}>{USER_PROFILE.name.split(' ')[0]}</Text>
                     </View>
                     <TouchableOpacity
                         style={styles.profileToggle}
                         onPress={() => navigation.navigate('Settings')}
                     >
                         <View style={styles.avatarPlaceholder}>
-                            <Text style={styles.avatarText}>S</Text>
+                            <Text style={styles.avatarText}>{USER_PROFILE.avatarInitials}</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -125,7 +117,7 @@ const HomeScreen = () => {
                                 style={styles.modalPrimaryButton}
                                 onPress={() => {
                                     setShowAlreadyJournaledModal(false);
-                                    navigation.navigate('EntryDetail', { id: RECENT_ENTRIES[0].id });
+                                    navigation.navigate('EntryDetail', { id: MOCK_ENTRIES[0].id });
                                 }}
                             >
                                 <Text style={styles.modalPrimaryButtonText}>View Today's Entry</Text>

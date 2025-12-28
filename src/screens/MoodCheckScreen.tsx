@@ -12,13 +12,7 @@ import { theme } from '../theme';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-const MOODS = [
-    { id: 'happy', label: 'Happy', emoji: '😊', color: theme.colors.mood.happy },
-    { id: 'calm', label: 'Calm', emoji: '😌', color: theme.colors.mood.calm },
-    { id: 'anxious', label: 'Anxious', emoji: '😟', color: theme.colors.mood.anxious },
-    { id: 'sad', label: 'Sad', emoji: '😢', color: theme.colors.mood.sad },
-    { id: 'angry', label: 'Angry', emoji: '😤', color: theme.colors.mood.angry },
-];
+import { MOODS } from '../data/mockData';
 
 const MoodCheckScreen = () => {
     const [selectedMood, setSelectedMood] = React.useState<string | null>(null);
@@ -27,17 +21,17 @@ const MoodCheckScreen = () => {
     const isPost = route.params?.type === 'post';
 
     const scaleAnims = React.useRef(MOODS.reduce((acc, mood) => {
-        acc[mood.id] = new Animated.Value(1);
+        acc[mood.type] = new Animated.Value(1);
         return acc;
     }, {} as any)).current;
 
-    const handleMoodSelect = (moodId: string) => {
-        setSelectedMood(moodId);
+    const handleMoodSelect = (moodType: string) => {
+        setSelectedMood(moodType);
 
         // Animate selection
         MOODS.forEach((mood) => {
-            Animated.spring(scaleAnims[mood.id], {
-                toValue: mood.id === moodId ? 1.2 : 1,
+            Animated.spring(scaleAnims[mood.type], {
+                toValue: mood.type === moodType ? 1.2 : 1,
                 useNativeDriver: true,
             }).start();
         });
@@ -74,17 +68,17 @@ const MoodCheckScreen = () => {
                 <View style={styles.moodGrid}>
                     {MOODS.map((mood) => (
                         <TouchableOpacity
-                            key={mood.id}
+                            key={mood.type}
                             style={styles.moodItem}
-                            onPress={() => handleMoodSelect(mood.id)}
+                            onPress={() => handleMoodSelect(mood.type)}
                             activeOpacity={0.7}
                         >
                             <Animated.View
                                 style={[
                                     styles.moodCircle,
                                     { backgroundColor: mood.color + '20' },
-                                    selectedMood === mood.id ? { borderColor: mood.color, borderWidth: 3 } : {},
-                                    { transform: [{ scale: scaleAnims[mood.id] }] },
+                                    selectedMood === mood.type ? { borderColor: mood.color, borderWidth: 3 } : {},
+                                    { transform: [{ scale: scaleAnims[mood.type] }] },
                                 ]}
                             >
                                 <Text style={styles.moodEmoji}>{mood.emoji}</Text>
@@ -92,7 +86,7 @@ const MoodCheckScreen = () => {
                             <Text
                                 style={[
                                     styles.moodLabel,
-                                    selectedMood === mood.id ? { color: mood.color, fontWeight: '700' } : {},
+                                    selectedMood === mood.type ? { color: mood.color, fontWeight: '700' } : {},
                                 ]}
                             >
                                 {mood.label}

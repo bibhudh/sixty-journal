@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { USER_PROFILE } from '../data/mockData';
 
 const SettingsScreen = () => {
     const navigation = useNavigation();
@@ -62,11 +63,11 @@ const SettingsScreen = () => {
                 {/* Profile Section */}
                 <View style={styles.profileSection}>
                     <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>S</Text>
+                        <Text style={styles.avatarText}>{USER_PROFILE.avatarInitials}</Text>
                     </View>
                     <View style={styles.profileInfo}>
-                        <Text style={styles.profileName}>Sarah Johnson</Text>
-                        <Text style={styles.profileEmail}>sarah@email.com</Text>
+                        <Text style={styles.profileName}>{USER_PROFILE.name}</Text>
+                        <Text style={styles.profileEmail}>{USER_PROFILE.email}</Text>
                     </View>
                 </View>
                 <Divider />

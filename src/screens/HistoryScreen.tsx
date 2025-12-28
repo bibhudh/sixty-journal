@@ -18,35 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 const { width, height } = Dimensions.get('window');
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-// Mock data generator for December 2025
-const GENERATE_MOCK_DECEMBER_ENTRIES = () => {
-    const entries = [];
-    const moods = ['😊', '😌', '😟', '😔', '😠'];
-    const moodLabels = ['happy', 'calm', 'anxious', 'sad', 'angry'];
-    const sampleTexts = [
-        "What's one small thing that made you smile today? I saw a puppy playing in the leaves.",
-        "Today was a productive day. I managed to clear my inbox and felt a huge sense of relief.",
-        "A quiet evening reflecting on the past year. I'm excited for what's coming in 2026.",
-        "Feeling a bit overwhelmed but writing this down helped a lot. I need to prioritize my sleep.",
-        "The weather was beautiful today, went for a long walk in the park. Nature is so grounding.",
-        "Had a great conversation with an old friend. Connection is so important for the soul.",
-    ];
-
-    for (let d = 1; d <= 26; d++) {
-        const moodIndex = Math.floor(Math.random() * moods.length);
-        entries.push({
-            id: `dec-${d}`,
-            day: d,
-            mood: moods[moodIndex],
-            moodType: moodLabels[moodIndex],
-            text: sampleTexts[d % sampleTexts.length],
-            date: `Dec ${d}, 2025`,
-        });
-    }
-    return entries;
-};
-
-const MOCK_ENTRIES = GENERATE_MOCK_DECEMBER_ENTRIES();
+import { MOCK_ENTRIES, MOODS } from '../data/mockData';
 
 const HistoryScreen = () => {
     const navigation = useNavigation<any>();
@@ -67,13 +39,7 @@ const HistoryScreen = () => {
     ];
     const years = [2024, 2025, 2026];
 
-    const MOOD_FILTERS = [
-        { emoji: '😊', type: 'happy' },
-        { emoji: '😌', type: 'calm' },
-        { emoji: '😟', type: 'anxious' },
-        { emoji: '😔', type: 'sad' },
-        { emoji: '😠', type: 'angry' },
-    ];
+    const MOOD_FILTERS = MOODS;
 
     const renderCalendarGrid = () => {
         const days = [];
@@ -83,10 +49,8 @@ const HistoryScreen = () => {
 
         for (let d = 1; d <= daysInMonth; d++) {
             const isToday = d === 27; // Mock today
-            // Dec 27 is today and it's not journaled yet (per user request).
-            // Dec 15 and Dec 19 are past empty days.
-            const isUnhighlighted = d === 15 || d === 19 || isToday;
-            const entry = isUnhighlighted ? null : MOCK_ENTRIES.find(e => e.day === d);
+            // Dec 27 is today
+            const entry = MOCK_ENTRIES.find(e => e.day === d);
 
             const isFuture = d > 27; // Disable future dates
 
@@ -142,7 +106,7 @@ const HistoryScreen = () => {
     const filteredMonthEntries = monthEntries.filter(entry => {
         const matchesSearch = entry.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
             entry.date.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesMood = activeMoodFilter ? entry.moodType === activeMoodFilter : true;
+        const matchesMood = activeMoodFilter ? entry.postMood.type === activeMoodFilter : true;
         return matchesSearch && matchesMood;
     }).reverse();
 
@@ -198,7 +162,7 @@ const HistoryScreen = () => {
                             >
                                 <View style={styles.recentEntryInfo}>
                                     <Text style={styles.recentEntryDate}>{entry.date}</Text>
-                                    <Text style={styles.recentEntryEmoji}>{entry.mood}</Text>
+                                    <Text style={styles.recentEntryEmoji}>{entry.postMood.emoji}</Text>
                                 </View>
                                 <Text style={styles.recentEntryText} numberOfLines={2}>{entry.text}</Text>
                             </TouchableOpacity>
@@ -212,7 +176,7 @@ const HistoryScreen = () => {
                         style={styles.viewAllGlobalButton}
                         onPress={() => navigation.navigate('AllEntries')}
                     >
-                        <Text style={styles.viewAllGlobalButtonText}>View Global History</Text>
+                        <Text style={styles.viewAllGlobalButtonText}>Show All Entries</Text>
                         <ChevronRight size={20} color={theme.colors.primary} />
                     </TouchableOpacity>
                 </View>
@@ -332,7 +296,7 @@ const HistoryScreen = () => {
                             >
                                 <View style={styles.entryHeader}>
                                     <Text style={styles.entryDateText}>{item.date}</Text>
-                                    <Text style={styles.entryMoodEmoji}>{item.mood}</Text>
+                                    <Text style={styles.entryMoodEmoji}>{item.postMood.emoji}</Text>
                                 </View>
                                 <Text style={styles.entryTextPreview} numberOfLines={3}>
                                     {item.text}

@@ -14,9 +14,12 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
+import { MOCK_ENTRIES } from '../data/mockData';
+
 const CompletionScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
+    const entry = MOCK_ENTRIES[0];
     const scaleAnim = React.useRef(new Animated.Value(0)).current;
     const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -56,14 +59,14 @@ const CompletionScreen = () => {
                     <View style={styles.moodShiftCard}>
                         <Text style={styles.shiftTitle}>Your Mood Shift</Text>
                         <View style={styles.shiftRow}>
-                            <View style={[styles.moodBadge, { backgroundColor: theme.colors.mood.anxious + '30' }]}>
-                                <Text style={styles.moodEmoji}>😟</Text>
-                                <Text style={styles.moodName}>Anxious</Text>
+                            <View style={[styles.moodBadge, { backgroundColor: (theme.colors.mood as any)[entry.preMood.type] + '30' }]}>
+                                <Text style={styles.moodEmoji}>{entry.preMood.emoji}</Text>
+                                <Text style={styles.moodName}>{entry.preMood.label}</Text>
                             </View>
                             <ArrowRight size={20} color={theme.colors.textMuted} />
-                            <View style={[styles.moodBadge, { backgroundColor: theme.colors.mood.calm + '30' }]}>
-                                <Text style={styles.moodEmoji}>😌</Text>
-                                <Text style={styles.moodName}>Calm</Text>
+                            <View style={[styles.moodBadge, { backgroundColor: (theme.colors.mood as any)[entry.postMood.type] + '30' }]}>
+                                <Text style={styles.moodEmoji}>{entry.postMood.emoji}</Text>
+                                <Text style={styles.moodName}>{entry.postMood.label}</Text>
                             </View>
                         </View>
                     </View>
@@ -79,7 +82,7 @@ const CompletionScreen = () => {
 
                     <TouchableOpacity
                         style={styles.secondaryButton}
-                        onPress={() => navigation.navigate('EntryDetail', { id: 'dec-27' })}
+                        onPress={() => navigation.navigate('EntryDetail', { id: MOCK_ENTRIES[0].id })}
                     >
                         <Text style={styles.secondaryButtonText}>View Entry</Text>
                     </TouchableOpacity>

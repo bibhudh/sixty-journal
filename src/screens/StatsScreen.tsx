@@ -5,6 +5,7 @@ import {
     StyleSheet,
     ScrollView,
     Dimensions,
+    TouchableOpacity,
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,15 +14,129 @@ import { Flame, PenTool, TrendingUp, Info } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
+import { MOCK_ENTRIES } from '../data/mockData';
+
 const StatsScreen = () => {
+    const [timeFilter, setTimeFilter] = React.useState('Week');
+
+    // Mood Scoring
+    const getMoodScore = (type: string) => {
+        switch (type) {
+            case 'happy': return 5;
+            case 'calm': return 4;
+            case 'anxious': return 3;
+            case 'sad': return 2;
+            case 'angry': return 1;
+            default: return 3;
+        }
+    };
+
+    // Calculate chart data based on filter
+    const getChartData = () => {
+        const dataPoints: { label: string; score: number }[] = [];
+
+        if (timeFilter === 'Week') {
+            // Last 7 days
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(2025, 11, 27); // Mock current date: Dec 27
+                d.setDate(d.getDate() - i);
+
+                const dayStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+                // Simple check for mock data matching the day date string logic is complex with pure string IDs
+                // Let's rely on MOCK_ENTRIES being generated for 2025.
+
+                // Find entries for this day
+                const dayMonth = d.toLocaleDateString('en-US', { month: 'short' });
+                const dayNum = d.getDate();
+                const matchingEntry = MOCK_ENTRIES.find(e => {
+                    // e.date format "Dec 27, 2025" or "Jan 1, 2025"
+                    return e.date.startsWith(`${dayMonth} ${dayNum},`);
+                });
+
+                if (matchingEntry) {
+                    dataPoints.push({
+                        label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                        score: getMoodScore(matchingEntry.postMood.type)
+                    });
+                } else {
+                    // Fill gap with previous or default
+                    dataPoints.push({
+                        label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                        score: 3 // Neutral fallback
+                    });
+                }
+            }
+        } else if (timeFilter === '6 Months' || timeFilter === '12 Months') {
+            const monthsBack = timeFilter === '6 Months' ? 6 : 12;
+            const currentMonthIdx = 11; // Dec
+
+            for (let i = monthsBack - 1; i >= 0; i--) {
+                const targetMonthIdx = (currentMonthIdx - i + 12) % 12; // Handle wrap if needed, mainly 0-11
+                const targetMonthName = new Date(2025, targetMonthIdx).toLocaleDateString('en-US', { month: 'short' });
+
+                // Average for month
+                const monthEntries = MOCK_ENTRIES.filter(e => e.date.startsWith(targetMonthName));
+                const totalScore = monthEntries.reduce((acc, curr) => acc + getMoodScore(curr.postMood.type), 0);
+                const avgScore = monthEntries.length > 0 ? totalScore / monthEntries.length : 3;
+
+                dataPoints.push({
+                    label: targetMonthName,
+                    score: avgScore
+                });
+            }
+        }
+        return dataPoints;
+    };
+
+    const chartData = getChartData();
+
+    // Generate Path for SVG
+    const getChartPath = () => {
+        if (chartData.length < 2) return "";
+
+        const cardWidth = Math.max(width - 120, chartData.length * 50);
+        // Map scores 1..5 to Y coordinates (15..135)
+        // 5 -> 15 (top)
+        // 1 -> 135 (bottom)
+        const getY = (score: number) => 15 + (5 - score) * 30;
+        const getX = (index: number) => (index * cardWidth) / (chartData.length - 1);
+
+        let d = `M ${getX(0)} ${getY(chartData[0].score)}`;
+        for (let i = 1; i < chartData.length; i++) {
+            d += ` L ${getX(i)} ${getY(chartData[i].score)}`;
+        }
+        return d;
+    };
+
+    const getTrendText = () => {
+        const start = chartData[0].score;
+        const end = chartData[chartData.length - 1].score;
+        const diff = end - start;
+
+        if (diff > 0.5) return "Upward Trend";
+        if (diff < -0.5) return "Downward Trend";
+        return "Stable Mood";
+    };
+
+    // Calculate basic stats
+    const totalEntries = MOCK_ENTRIES.length;
+    const totalWords = MOCK_ENTRIES.reduce((acc, curr) => acc + curr.text.split(' ').length, 0);
+
+    // Mock week: Dec 22 (Mon) to Dec 28 (Sun) 2025
+    // Data exists up to Dec 26.
+    const getEntriesCount = (day: number) => MOCK_ENTRIES.find(e => e.day === day && e.date.startsWith('Dec')) ? 1 : 0;
+
+    // Determine bar color based on activity
+    const getBarColor = (count: number) => count > 0 ? theme.colors.primary : theme.colors.border;
+
     const weeklyData = [
-        { day: 'M', entries: 1, color: theme.colors.primary },
-        { day: 'T', entries: 1, color: theme.colors.primary },
-        { day: 'W', entries: 0, color: theme.colors.border },
-        { day: 'T', entries: 1, color: theme.colors.primary },
-        { day: 'F', entries: 1, color: theme.colors.primary },
-        { day: 'S', entries: 1, color: theme.colors.primary },
-        { day: 'S', entries: 1, color: theme.colors.primary },
+        { day: 'M', entries: getEntriesCount(22), color: getBarColor(getEntriesCount(22)) },
+        { day: 'T', entries: getEntriesCount(23), color: getBarColor(getEntriesCount(23)) },
+        { day: 'W', entries: getEntriesCount(24), color: getBarColor(getEntriesCount(24)) },
+        { day: 'T', entries: getEntriesCount(25), color: getBarColor(getEntriesCount(25)) },
+        { day: 'F', entries: getEntriesCount(26), color: getBarColor(getEntriesCount(26)) },
+        { day: 'S', entries: getEntriesCount(27), color: getBarColor(getEntriesCount(27)) },
+        { day: 'S', entries: getEntriesCount(28), color: getBarColor(getEntriesCount(28)) },
     ];
 
     return (
@@ -36,7 +151,7 @@ const StatsScreen = () => {
                         <View style={[styles.statIcon, { backgroundColor: theme.colors.error + '20' }]}>
                             <Flame size={24} color={theme.colors.error} fill={theme.colors.error} />
                         </View>
-                        <Text style={styles.statValue}>7</Text>
+                        <Text style={styles.statValue}>5</Text>
                         <Text style={styles.statLabel}>Day Streak</Text>
                         <Text style={styles.statSub}>Keep going! 🔥</Text>
                     </View>
@@ -45,45 +160,111 @@ const StatsScreen = () => {
                         <View style={[styles.statIcon, { backgroundColor: theme.colors.primary + '20' }]}>
                             <PenTool size={24} color={theme.colors.primary} />
                         </View>
-                        <Text style={styles.statValue}>24</Text>
+                        <Text style={styles.statValue}>{totalEntries}</Text>
                         <Text style={styles.statLabel}>Total Entries</Text>
-                        <Text style={styles.statSub}>1,847 words written</Text>
+                        <Text style={styles.statSub}>{totalWords.toLocaleString()} words written</Text>
                     </View>
                 </View>
 
-                <View style={styles.moodTrendCard}>
-                    <View style={styles.cardHeader}>
+                <View style={[styles.moodTrendCard, { paddingLeft: 8, paddingRight: 24 }]}>
+                    <View style={[styles.cardHeader, { paddingLeft: 16 }]}>
                         <TrendingUp size={20} color={theme.colors.primary} />
-                        <Text style={styles.cardTitle}>Mood Trend (7 Days)</Text>
+                        <Text style={styles.cardTitle}>Mood Trend</Text>
                     </View>
-                    <View style={styles.trendInfo}>
-                        <Text style={styles.trendValue}>Upward</Text>
-                        <Text style={styles.trendSub}>Your mood has improved by 15% this week.</Text>
+
+                    {/* Filter Tabs */}
+                    <View style={styles.filterContainer}>
+                        {['Week', '6 Months', '12 Months'].map((filter) => (
+                            <TouchableOpacity
+                                key={filter}
+                                style={[styles.filterTab, timeFilter === filter && styles.activeFilterTab]}
+                                onPress={() => setTimeFilter(filter)}
+                            >
+                                <Text style={[styles.filterText, timeFilter === filter && styles.activeFilterText]}>
+                                    {filter}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
-                    <View style={styles.trendViz}>
-                        <Svg height="120" width="100%" viewBox="0 0 300 120">
-                            {/* The Line Chart */}
-                            <Path
-                                d="M 20 90 L 60 80 L 100 65 L 140 55 L 180 40 L 220 25 L 260 15"
-                                fill="none"
-                                stroke={theme.colors.primary}
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            {/* Points on the line */}
-                            <Circle cx="20" cy="90" r="4" fill={theme.colors.primary} />
-                            <Circle cx="60" cy="80" r="4" fill={theme.colors.primary} />
-                            <Circle cx="100" cy="65" r="4" fill={theme.colors.primary} />
-                            <Circle cx="140" cy="55" r="4" fill={theme.colors.primary} />
-                            <Circle cx="180" cy="40" r="4" fill={theme.colors.primary} />
-                            <Circle cx="220" cy="25" r="4" fill={theme.colors.primary} />
-                            <Circle cx="260" cy="15" r="4" fill={theme.colors.primary} />
-                        </Svg>
-                        <View style={styles.trendLabels}>
-                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                                <Text key={day} style={styles.trendDayLabel}>{day}</Text>
+
+                    <View style={styles.trendInfoContainer}>
+                        <Text style={styles.trendValue}>{getTrendText()}</Text>
+                    </View>
+
+                    <View style={styles.chartRow}>
+                        {/* Y-Axis Labels - Fixed */}
+                        <View style={styles.yAxis}>
+                            {['Happy', 'Calm', 'Anxious', 'Sad', 'Angry'].map((label, index) => (
+                                <View key={label} style={styles.yAxisLabelContainer}>
+                                    <Text style={styles.yAxisLabel}>{label}</Text>
+                                </View>
                             ))}
+                        </View>
+
+                        {/* Chart Area - Scrollable */}
+                        <View style={styles.chartArea}>
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={{ paddingRight: 20 }}
+                            >
+                                <View>
+                                    <Svg height="150" width={Math.max(width - 120, chartData.length * 50)} viewBox={`0 0 ${Math.max(width - 120, chartData.length * 50)} 150`}>
+                                        {/* Grid Lines */}
+                                        {[0, 1, 2, 3, 4].map((i) => (
+                                            <Path
+                                                key={i}
+                                                d={`M 0 ${15 + i * 30} H ${Math.max(width - 120, chartData.length * 50)}`}
+                                                stroke={theme.colors.border}
+                                                strokeWidth="1"
+                                                strokeDasharray="4 4"
+                                            />
+                                        ))}
+
+                                        {/* The Line Chart */}
+                                        {chartData.length > 1 && (
+                                            <Path
+                                                d={getChartPath()}
+                                                fill="none"
+                                                stroke={theme.colors.primary}
+                                                strokeWidth="3"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                        )}
+
+                                        {/* Data Points */}
+                                        {chartData.map((point, index) => (
+                                            <Circle
+                                                key={index}
+                                                cx={(index * Math.max(width - 120, chartData.length * 50)) / (chartData.length - 1 || 1)}
+                                                cy={15 + (5 - point.score) * 30}
+                                                r="4"
+                                                fill={theme.colors.primary}
+                                            />
+                                        ))}
+                                    </Svg>
+
+                                    {/* X-Axis Labels inside scroll view */}
+                                    <View style={[styles.xAxis, { width: Math.max(width - 120, chartData.length * 50) }]}>
+                                        {chartData.map((point, index) => (
+                                            <Text
+                                                key={index}
+                                                style={[
+                                                    styles.xAxisLabel,
+                                                    {
+                                                        width: 50,
+                                                        position: 'absolute',
+                                                        left: (index * Math.max(width - 120, chartData.length * 50)) / (chartData.length - 1 || 1) - 25
+                                                    }
+                                                ]}
+                                            >
+                                                {point.label}
+                                            </Text>
+                                        ))}
+                                    </View>
+                                </View>
+                            </ScrollView>
                         </View>
                     </View>
                 </View>
@@ -263,6 +444,68 @@ const styles = StyleSheet.create({
         ...theme.typography.caption,
         color: theme.colors.textMuted,
         flex: 1,
+    },
+    filterContainer: {
+        flexDirection: 'row',
+        backgroundColor: theme.colors.surface,
+        borderRadius: 12,
+        padding: 4,
+        marginBottom: 20,
+    },
+    filterTab: {
+        flex: 1,
+        paddingVertical: 8,
+        alignItems: 'center',
+        borderRadius: 8,
+    },
+    activeFilterTab: {
+        backgroundColor: theme.colors.white,
+        ...theme.shadows.small,
+    },
+    filterText: {
+        ...theme.typography.caption,
+        color: theme.colors.textMuted,
+        fontWeight: '600',
+    },
+    activeFilterText: {
+        color: theme.colors.primary,
+        fontWeight: '700',
+    },
+    trendInfoContainer: {
+        marginBottom: 8,
+        paddingHorizontal: 16,
+    },
+    chartRow: {
+        flexDirection: 'row',
+        height: 150,
+        alignItems: 'flex-start', // Top align to match SVG 0 coordinate
+    },
+    yAxis: {
+        width: 60,
+        height: 150,
+        justifyContent: 'flex-start',
+        paddingVertical: 0,
+        alignItems: 'flex-start',
+    },
+    yAxisLabelContainer: {
+        height: 30,
+        justifyContent: 'center',
+    },
+    yAxisLabel: {
+        fontSize: 10,
+        color: theme.colors.textMuted,
+        fontWeight: '600',
+    },
+    chartArea: {
+        flex: 1,
+    },
+    xAxis: {
+        marginTop: 4,
+    },
+    xAxisLabel: {
+        fontSize: 10,
+        color: theme.colors.textMuted,
+        textAlign: 'center',
     },
 });
 

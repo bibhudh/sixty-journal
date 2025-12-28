@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import { User, Settings, LogOut } from 'lucide-react-native';
+import { USER_PROFILE } from '../data/mockData';
 
 const ProfileScreen = () => {
     return (
@@ -13,8 +14,8 @@ const ProfileScreen = () => {
                         <User color={theme.colors.primary} size={40} />
                     </View>
                 </View>
-                <Text style={styles.userName}>User Name</Text>
-                <Text style={styles.userEmail}>user@example.com</Text>
+                <Text style={styles.userName}>{USER_PROFILE.name}</Text>
+                <Text style={styles.userEmail}>{USER_PROFILE.email}</Text>
             </View>
 
             <View style={styles.menu}>
